@@ -39,4 +39,14 @@ tokio = { version = "1.35.0", features = ["full"] }
 openssl = { version = "0.10", default-features = false } # no "vendored"
 asn1 = "0.7"
 chrono = "0.4"
+rusoto_core = "0.48.0"
+rusoto_s3 = "0.48.0"
+aws-sdk-secretsmanager = "1.20.1"
+log = "0.4"
+env_logger = "0.10"
+base64 = "0.22.1"
+hmac = "0.12.1"
+sha2 = "0.10.8"
+aws-config = { version = "1.5.6", features = ["behavior-version-latest"] }
+aws-sdk-kms = "1.43.0"
 
