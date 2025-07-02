@@ -1,5 +1,5 @@
 use chrono::{TimeZone, Utc};
-use mongodb::bson::oid::ObjectId;
+use mongodb::bson::oid::{self, ObjectId};
 use mongodb::bson::{Bson, DateTime};
 use rocket_okapi::okapi::openapi3::SchemaObject;
 use rocket_okapi::okapi::schemars::r#gen::SchemaGenerator;
@@ -37,6 +37,10 @@ impl MyObjectId {
                 MyObjectId(ObjectId::new())
             }
         }
+    }
+
+    pub fn parse_string(s: &str) -> Result<Self, oid::Error> {
+        ObjectId::parse_str(s).map(MyObjectId)
     }
 
     pub fn try_parse_str(s: &str) -> Result<Self, mongodb::bson::oid::Error> {
