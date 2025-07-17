@@ -2,11 +2,10 @@ use hex::encode;
 use rand::Rng;
 use rocket::tokio::io::AsyncReadExt;
 use rusoto_core::Region;
-use rusoto_s3::{GetObjectRequest, S3Client, S3};
-use tracing::debug;
-use std::{collections::HashMap, env};
-
-use crate::constants::{ENV, KSA, LOCAL_ENV, UK};
+use rusoto_s3::{ GetObjectRequest, S3Client, S3 };
+use tracing::{ debug, error, warn };
+use std::{ collections::HashMap, error::Error };
+use crate::constants::{ KSA, UK };
 
 pub fn generate_random_token() -> String {
     let mut rng = rand::thread_rng();
@@ -22,27 +21,27 @@ pub fn generate_random_alphanumeric_string() -> String {
     encode(&random_key_bytes)
 }
 
-pub fn get_env_var(name: &str, default: Option<&str>) -> String {
-    match env::var(name) {
-        Ok(val) => val,
-        Err(_) => {
-            debug!("Error loading {} env variable", name);
-            match default {
-                Some(val) => val.to_string(),
-                None => String::new(),
+pub fn get_env_var(key: &str, default_value: Option<&str>) -> Result<String, Box<dyn Error + Send + Sync>> {
+    match std::env::var(key) {
+        Ok(value) => Ok(value),
+        Err(e) => {
+            if let Some(default) = default_value {
+                // If a default value is provided, use it and log a warning
+                warn!("Environment variable '{}' not set. Using default value: '{}'", key, default);
+                Ok(default.to_string())
+            } else {
+                // If no default value is provided, and the variable is missing, return an error
+                let error_message = format!("Environment variable '{}' not set: {}", key, e);
+                error!("{}", error_message);
+                Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, error_message)) as Box<dyn Error + Send + Sync>)
             }
         }
     }
 }
 
-pub fn is_local_env() -> bool {
-    let env = get_env_var(ENV, None);
-    env == LOCAL_ENV
-}
-
 pub async fn download_file_from_s3(
     bucket_name: &str,
-    object_key: &str,
+    object_key: &str
 ) -> Result<String, Box<dyn std::error::Error>> {
     // Create an S3 client
     let region = Region::EuWest2;
@@ -73,12 +72,7 @@ pub async fn get_secret_value(secret_name: &str) -> Result<String, Box<dyn std::
     let config = aws_config::load_from_env().await;
     let secret_manager = aws_sdk_secretsmanager::Client::new(&config);
 
-    let secret = match secret_manager
-        .get_secret_value()
-        .secret_id(secret_name)
-        .send()
-        .await
-    {
+    let secret = match secret_manager.get_secret_value().secret_id(secret_name).send().await {
         Ok(s) => {
             if let Some(secret) = s.secret_string {
                 secret
@@ -89,7 +83,7 @@ pub async fn get_secret_value(secret_name: &str) -> Result<String, Box<dyn std::
         }
         Err(err) => {
             debug!("Error trying to get connection secret for {secret_name}: {err:?}");
-            return Err(Box::new(err))
+            return Err(Box::new(err));
         }
     };
 
@@ -102,12 +96,12 @@ pub async fn get_secret_value(secret_name: &str) -> Result<String, Box<dyn std::
 pub fn get_country_code_from_phone_number(phone_number: &str) -> String {
     // Simple static map of country code prefixes to country names
     let country_codes: HashMap<&str, &str> = [
-        ("44", UK),      // United Kingdom
-        ("966", KSA),      // United Kingdom
+        ("44", UK), // United Kingdom
+        ("966", KSA), // United Kingdom
     ]
-    .iter()
-    .cloned()
-    .collect();
+        .iter()
+        .cloned()
+        .collect();
 
     // Remove the leading "+" sign and parse the country code prefix
     let clean_number = phone_number.trim_start_matches('+'); // Remove leading '+'
@@ -116,6 +110,6 @@ pub fn get_country_code_from_phone_number(phone_number: &str) -> String {
     // Look up the country name based on the country code prefix
     country_codes
         .get(country_code)
-        .map(|&country| country.to_string()) 
-        .unwrap_or_else(|| "Unknown".to_string()) 
+        .map(|&country| country.to_string())
+        .unwrap_or_else(|| "Unknown".to_string())
 }

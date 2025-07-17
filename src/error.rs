@@ -180,17 +180,9 @@ impl<'r> Responder<'r, 'static> for ApiError {
     }
 }
 
-// impl Responder<'static, 'static> for Result<Vec<String>, ApiError> {
-//     fn respond_to(self, req: &'static Request<'_>) -> Result<Response<'static>, Status> {
-//         match self {
-//             Ok(notified_devices) => {
-//                 let body = notified_devices.join("\n"); // or any other suitable format
-//                 Response::build()
-//                     .status(Status::Ok)
-//                     .sized_body(body.len(), Cursor::new(body))
-//                     .ok()
-//             }
-//             Err(api_error) => Err(api_error.into()),
-//         }
-//     }
-// }
+impl From<String> for ApiError {
+    fn from(message: String) -> Self {
+        // By default, convert generic String errors to InternalServerError
+        ApiError::InternalServerError { message: format!("Generic conversion error: {}", message) }
+    }
+}

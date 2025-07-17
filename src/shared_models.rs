@@ -9,7 +9,6 @@ use rocket_okapi::okapi::schemars::{self};
 use serde::de::{self, Visitor};
 use serde::ser::Error;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use tracing::debug;
 use std::cmp::{Eq, Ord, PartialEq, PartialOrd};
 use std::fmt;
 
@@ -17,26 +16,12 @@ use std::fmt;
 pub struct MyObjectId(pub ObjectId);
 
 impl MyObjectId {
-    // Method to get the hex string representation of the ObjectId
-    
     pub fn new() -> Self {
         MyObjectId(ObjectId::new())
     }
     
     pub fn to_string(&self) -> String {
         self.0.to_hex()
-    }
-
-    // Delegate parsing to ObjectId
-    pub fn from_str(s: &str) -> Self {
-        match ObjectId::parse_str(s) {
-            Ok(oid) => MyObjectId(oid),
-            Err(e) => {
-                // You can replace this with any logging mechanism
-                debug!("Failed to parse ObjectId from string '{}': {}", s, e);
-                MyObjectId(ObjectId::new())
-            }
-        }
     }
 
     pub fn parse_string(s: &str) -> Result<Self, oid::Error> {
