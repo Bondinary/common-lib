@@ -1,9 +1,0 @@
-[registries.bondinary-bondinary-rust-crates]
-index = "sparse+https://bondinary-686255964170.d.codeartifact.eu-west-2.amazonaws.com/cargo/bondinary-rust-crates/"
-credential-provider = "cargo:token-from-stdout aws codeartifact get-authorization-token --domain bondinary --domain-owner 686255964170 --region eu-west-2 --query authorizationToken --output text"
-
-[registry]
-default = "bondinary-bondinary-rust-crates"
-
-[source.crates-io]
-replace-with = "bondinary-bondinary-rust-crates"
