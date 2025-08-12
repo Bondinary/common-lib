@@ -190,3 +190,17 @@ pub struct TwilioApiKeyResponse {
     pub date_updated: String,
     pub secret: String,
 }
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct IdNamePair {
+    pub id: String,
+    pub name: String,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct IdKeyPair {
+    pub id: String,
+    pub key: String,
+}
