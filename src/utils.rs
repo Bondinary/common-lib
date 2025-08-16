@@ -18,7 +18,7 @@ pub fn generate_random_alphanumeric_string() -> String {
     let random_key_bytes: [u8; 32] = rng.r#gen();
 
     // Convert the byte array to a hexadecimal string
-    encode(&random_key_bytes)
+    encode(random_key_bytes)
 }
 
 pub fn get_env_var(key: &str, default_value: Option<&str>) -> Result<String, Box<dyn Error + Send + Sync>> {
@@ -31,9 +31,9 @@ pub fn get_env_var(key: &str, default_value: Option<&str>) -> Result<String, Box
                 Ok(default.to_string())
             } else {
                 // If no default value is provided, and the variable is missing, return an error
-                let error_message = format!("Environment variable '{}' not set: {}", key, e);
-                error!("{}", error_message);
-                Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, error_message)) as Box<dyn Error + Send + Sync>)
+                let error_message = format!("Environment variable {key} not set: {e}");
+                error!("{error_message}");
+                Err(Box::new(std::io::Error::other(error_message)) as Box<dyn Error + Send + Sync>)
             }
         }
     }

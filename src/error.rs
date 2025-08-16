@@ -1,23 +1,35 @@
 use rocket::{
-    http::{ContentType, Status},
+    http::{ ContentType, Status },
     request::Request,
-    response::{self, Responder, Response},
+    response::{ self, Responder, Response },
 };
-use rocket_okapi::{r#gen::OpenApiGenerator, okapi::openapi3::Responses, response::OpenApiResponderInner, OpenApiError};
+use rocket_okapi::{
+    r#gen::OpenApiGenerator,
+    okapi::openapi3::Responses,
+    response::OpenApiResponderInner,
+    OpenApiError,
+};
 use rocket_okapi::okapi::schemars::Map;
 use serde_json::json;
-use std::{
-    error::Error,
-    fmt::{Display, Formatter},
-};
+use std::{ error::Error, fmt::{ Display, Formatter } };
 
 #[derive(Debug)]
 pub enum ApiError {
-    NotFound { message: String },
-    InternalServerError { message: String },
-    BadRequest { message: String },
-    Unauthorized { message: String },
-    PaymentRequired { message: String }, 
+    NotFound {
+        message: String,
+    },
+    InternalServerError {
+        message: String,
+    },
+    BadRequest {
+        message: String,
+    },
+    Unauthorized {
+        message: String,
+    },
+    PaymentRequired {
+        message: String,
+    },
     QuotaExceeded {
         resource: String,
         monthly_count: i32,
@@ -35,8 +47,8 @@ impl ApiError {
             ApiError::InternalServerError { .. } => Status::InternalServerError,
             ApiError::BadRequest { .. } => Status::BadRequest,
             ApiError::Unauthorized { .. } => Status::Unauthorized,
-            ApiError::PaymentRequired { .. }     => Status::PaymentRequired,
-            ApiError::QuotaExceeded { .. }       => Status::PaymentRequired,
+            ApiError::PaymentRequired { .. } => Status::PaymentRequired,
+            ApiError::QuotaExceeded { .. } => Status::PaymentRequired,
         }
     }
 }
@@ -44,21 +56,13 @@ impl ApiError {
 impl Display for ApiError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            ApiError::NotFound { message } => {
-                write!(f, "Not Found: {}", message)
-            }
+            ApiError::NotFound { message } => { write!(f, "Not Found: {message}") }
             ApiError::InternalServerError { message } => {
-                write!(f, "Internal Server Error: {}", message)
+                write!(f, "Internal Server Error: {message}")
             }
-            ApiError::BadRequest { message } => {
-                write!(f, "Bad Request Error: {}", message)
-            }
-            ApiError::Unauthorized { message } => {
-                write!(f, "Unauthorized Error: {}", message)
-            }
-            ApiError::PaymentRequired { message } => {
-                write!(f, "Payment Required: {}", message)
-            }
+            ApiError::BadRequest { message } => { write!(f, "Bad Request Error: {message}") }
+            ApiError::Unauthorized { message } => { write!(f, "Unauthorized Error: {message}") }
+            ApiError::PaymentRequired { message } => { write!(f, "Payment Required: {message}") }
             ApiError::QuotaExceeded {
                 resource,
                 monthly_count,
@@ -68,8 +72,7 @@ impl Display for ApiError {
             } => {
                 write!(
                     f,
-                    "Quota exceeded for '{}': monthly {}/{} ; lifetime {}/{}",
-                    resource, monthly_count, monthly_limit, lifetime_count, lifetime_limit
+                    "Quota exceeded for '{resource}': monthly {monthly_count}/{monthly_limit} ; lifetime {lifetime_count}/{lifetime_limit}"
                 )
             }
         }
@@ -103,7 +106,7 @@ impl From<Box<dyn std::error::Error>> for ApiError {
 
 impl OpenApiResponderInner for ApiError {
     fn responses(_generator: &mut OpenApiGenerator) -> Result<Responses, OpenApiError> {
-        use rocket_okapi::okapi::openapi3::{RefOr, Response as OpenApiResponse};
+        use rocket_okapi::okapi::openapi3::{ RefOr, Response as OpenApiResponse };
 
         let mut responses = Map::new();
         responses.insert(
@@ -112,10 +115,9 @@ impl OpenApiResponderInner for ApiError {
                 description: "\
                 # [400 Bad Request](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400)\n\
                 The request given is wrongly formatted or data asked could not be fulfilled. \
-                "
-                .to_string(),
+                ".to_string(),
                 ..Default::default()
-            }),
+            })
         );
         responses.insert(
             "401".to_string(),
@@ -123,10 +125,9 @@ impl OpenApiResponderInner for ApiError {
                 description: "\
                 # [404 Unauthorized](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404)\n\
                 This response is given when your request is not authorized.\
-                "
-                .to_string(),
+                ".to_string(),
                 ..Default::default()
-            }),
+            })
         );
         responses.insert(
             "404".to_string(),
@@ -134,10 +135,9 @@ impl OpenApiResponderInner for ApiError {
                 description: "\
                 # [404 Not Found](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404)\n\
                 This response is given when you request a page that does not exists.\
-                "
-                .to_string(),
+                ".to_string(),
                 ..Default::default()
-            }),
+            })
         );
         responses.insert(
             "422".to_string(),
@@ -147,7 +147,7 @@ impl OpenApiResponderInner for ApiError {
                 This response is given when you request body is not correctly formatted. \
                 ".to_string(),
                 ..Default::default()
-            }),
+            })
         );
         responses.insert(
             "500".to_string(),
@@ -157,7 +157,7 @@ impl OpenApiResponderInner for ApiError {
                 This response is given when something wend wrong on the server. \
                 ".to_string(),
                 ..Default::default()
-            }),
+            })
         );
         Ok(Responses {
             responses,
@@ -183,6 +183,6 @@ impl<'r> Responder<'r, 'static> for ApiError {
 impl From<String> for ApiError {
     fn from(message: String) -> Self {
         // By default, convert generic String errors to InternalServerError
-        ApiError::InternalServerError { message: format!("Generic conversion error: {}", message) }
+        ApiError::InternalServerError { message: format!("Generic conversion error: {message}") }
     }
 }

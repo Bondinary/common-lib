@@ -15,13 +15,15 @@ use std::fmt;
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct MyObjectId(pub ObjectId);
 
-impl MyObjectId {
-    pub fn new() -> Self {
+impl Default for MyObjectId {
+    fn default() -> Self {
         MyObjectId(ObjectId::new())
     }
-    
-    pub fn to_string(&self) -> String {
-        self.0.to_hex()
+}
+
+impl MyObjectId {
+    pub fn new() -> Self {
+        Self::default()
     }
 
     pub fn parse_string(s: &str) -> Result<Self, oid::Error> {
@@ -97,9 +99,10 @@ impl JsonSchema for MyDateTime {
     }
 
     fn json_schema(_gen: &mut SchemaGenerator) -> Schema {
-        let mut schema = SchemaObject::default();
-        schema.format = Some("date-time".to_string()); // Specify it is a date-time
-        Schema::Object(schema)
+        Schema::Object(SchemaObject {
+            format: Some("date-time".to_string()),
+            ..Default::default()
+        })
     }
 }
 
