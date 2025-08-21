@@ -4,8 +4,7 @@ use rocket::tokio::io::AsyncReadExt;
 use rusoto_core::Region;
 use rusoto_s3::{ GetObjectRequest, S3Client, S3 };
 use tracing::{ debug, error, warn };
-use std::{ collections::HashMap, error::Error };
-use crate::constants::{ KSA, UK };
+use std::error::Error;
 
 pub fn generate_random_token() -> String {
     let mut rng = rand::thread_rng();
@@ -21,7 +20,10 @@ pub fn generate_random_alphanumeric_string() -> String {
     encode(random_key_bytes)
 }
 
-pub fn get_env_var(key: &str, default_value: Option<&str>) -> Result<String, Box<dyn Error + Send + Sync>> {
+pub fn get_env_var(
+    key: &str,
+    default_value: Option<&str>
+) -> Result<String, Box<dyn Error + Send + Sync>> {
     match std::env::var(key) {
         Ok(value) => Ok(value),
         Err(e) => {
@@ -91,25 +93,4 @@ pub async fn get_secret_value(secret_name: &str) -> Result<String, Box<dyn std::
     // https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
 
     Ok(secret)
-}
-
-pub fn get_country_code_from_phone_number(phone_number: &str) -> String {
-    // Simple static map of country code prefixes to country names
-    let country_codes: HashMap<&str, &str> = [
-        ("44", UK), // United Kingdom
-        ("966", KSA), // United Kingdom
-    ]
-        .iter()
-        .cloned()
-        .collect();
-
-    // Remove the leading "+" sign and parse the country code prefix
-    let clean_number = phone_number.trim_start_matches('+'); // Remove leading '+'
-    let country_code = clean_number.get(0..2).unwrap_or(&clean_number[0..1]);
-
-    // Look up the country name based on the country code prefix
-    country_codes
-        .get(country_code)
-        .map(|&country| country.to_string())
-        .unwrap_or_else(|| "Unknown".to_string())
 }
