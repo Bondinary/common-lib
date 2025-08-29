@@ -41,4 +41,7 @@ pub const FIREBASE_CREDENTIALS_BASE64: &str = "FIREBASE_CREDENTIALS_BASE64";
 pub const LOCAL_FIREBASE_ACCOUNT_SERVICE_JSON_PATH: &str =
     "LOCAL_FIREBASE_ACCOUNT_SERVICE_JSON_PATH";
 pub const FIREBASE_PROJECT_ID: &str = "FIREBASE_PROJECT_ID";
-pub const GOOGLE_API_KEYS_URL: &str = "GOOGLE_API_KEYS_URL";   
+pub const GOOGLE_API_KEYS_URL: &str = "GOOGLE_API_KEYS_URL";
+pub const X_INTERNAL_API_KEY: &str = "X-Internal-API-Key";
+pub const X_PHONE_NUMBER: &str = "X-Phone-Number";
+pub const X_FIREBASE_UID: &str = "X-Firebase-UID";
