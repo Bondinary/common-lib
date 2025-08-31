@@ -45,3 +45,5 @@ pub const GOOGLE_API_KEYS_URL: &str = "GOOGLE_API_KEYS_URL";
 pub const X_INTERNAL_API_KEY: &str = "X-Internal-API-Key";
 pub const X_PHONE_NUMBER: &str = "X-Phone-Number";
 pub const X_FIREBASE_UID: &str = "X-Firebase-UID";
+pub const X_COUNTRY_CODE: &str = "X-Country-Code";
+pub const X_CITY: &str = "X-City";
