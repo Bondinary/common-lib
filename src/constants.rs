@@ -47,3 +47,4 @@ pub const X_PHONE_NUMBER: &str = "X-Phone-Number";
 pub const X_FIREBASE_UID: &str = "X-Firebase-UID";
 pub const X_COUNTRY_CODE: &str = "X-Country-Code";
 pub const X_CITY: &str = "X-City";
+pub const UNKNOWN: &str = "UNKNOWN";
