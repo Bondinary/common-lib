@@ -7,14 +7,14 @@ use tracing::{ debug, error, warn };
 use std::error::Error;
 
 pub fn generate_random_token() -> String {
-    let mut rng = rand::thread_rng();
-    let random_number = rng.gen_range(111111..=999999);
+    let mut rng = rand::rng();
+    let random_number = rng.random_range(111111..=999999);
     random_number.to_string()
 }
 
 pub fn generate_random_alphanumeric_string() -> String {
-    let mut rng = rand::thread_rng();
-    let random_key_bytes: [u8; 32] = rng.r#gen();
+    let mut rng = rand::rng();
+    let random_key_bytes: [u8; 32] = rng.random();
 
     // Convert the byte array to a hexadecimal string
     encode(random_key_bytes)
