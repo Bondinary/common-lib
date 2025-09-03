@@ -10,10 +10,14 @@ use rocket_okapi::{
     OpenApiError,
 };
 use rocket_okapi::okapi::schemars::Map;
+use serde::{ Deserialize, Serialize };
 use serde_json::json;
 use std::{ error::Error, fmt::{ Display, Formatter } };
+use rocket_okapi::okapi::schemars::JsonSchema;
+use rocket_okapi::okapi::schemars::{ self };
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(tag = "type", content = "details")]
 pub enum ApiError {
     NotFound {
         message: String,
@@ -37,7 +41,11 @@ pub enum ApiError {
         monthly_limit: i32,
         lifetime_limit: i32,
     },
-    // Add other error variants as needed
+    #[serde(rename = "REGISTRATION_REQUIRED")] RegistrationRequired {
+        message: String,
+        reason: String,
+        suggested_action: String,
+    },
 }
 
 impl ApiError {
@@ -49,6 +57,27 @@ impl ApiError {
             ApiError::Unauthorized { .. } => Status::Unauthorized,
             ApiError::PaymentRequired { .. } => Status::PaymentRequired,
             ApiError::QuotaExceeded { .. } => Status::PaymentRequired,
+            ApiError::RegistrationRequired { .. } => Status::PreconditionRequired, // 428
+        }
+    }
+
+    pub fn registration_required(action: &str) -> Self {
+        ApiError::RegistrationRequired {
+            message: format!("Registration required to {}", action),
+            reason: format!("You need to register with your phone number to {}", action),
+            suggested_action: "Please complete registration to continue".to_string(),
+        }
+    }
+
+    pub fn status_code(&self) -> u16 {
+        match self {
+            ApiError::NotFound { .. } => 404,
+            ApiError::InternalServerError { .. } => 500,
+            ApiError::BadRequest { .. } => 400,
+            ApiError::Unauthorized { .. } => 401,
+            ApiError::PaymentRequired { .. } => 402,
+            ApiError::QuotaExceeded { .. } => 402,
+            ApiError::RegistrationRequired { .. } => 428, // 428 Precondition Required
         }
     }
 }
@@ -74,6 +103,9 @@ impl Display for ApiError {
                     f,
                     "Quota exceeded for '{resource}': monthly {monthly_count}/{monthly_limit} ; lifetime {lifetime_count}/{lifetime_limit}"
                 )
+            }
+            ApiError::RegistrationRequired { message, reason, suggested_action } => {
+                write!(f, "Registration Required: {message} - {reason} - {suggested_action}")
             }
         }
     }
