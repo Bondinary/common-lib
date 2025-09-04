@@ -5,6 +5,9 @@ use rusoto_core::Region;
 use rusoto_s3::{ GetObjectRequest, S3Client, S3 };
 use tracing::{ debug, error, warn };
 use std::error::Error;
+use crate::common_lib::shared_models::MyObjectId;
+use chrono::{ TimeZone, Utc };
+use mongodb::bson::DateTime;
 
 pub fn generate_random_token() -> String {
     let mut rng = rand::rng();
@@ -93,4 +96,68 @@ pub async fn get_secret_value(secret_name: &str) -> Result<String, Box<dyn std::
     // https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
 
     Ok(secret)
+}
+
+// === ObjectId Parsing Utilities ===
+
+/// Parse an optional ObjectId string, returning None for empty or None strings
+pub fn parse_optional_object_id(id_str: Option<&str>) -> Result<Option<MyObjectId>, String> {
+    match id_str {
+        Some(s) if !s.is_empty() =>
+            MyObjectId::parse_string(s)
+                .map(Some)
+                .map_err(|e| e.to_string()),
+        _ => Ok(None),
+    }
+}
+
+/// Parse a required ObjectId string from a String reference
+pub fn parse_required_object_id_from_string(id_str: &str) -> Result<MyObjectId, String> {
+    MyObjectId::parse_string(id_str).map_err(|e| e.to_string())
+}
+
+/// Parse a required ObjectId string, returning an error for empty or None strings
+pub fn parse_required_object_id(
+    id_str: Option<&str>,
+    field_name: &str
+) -> Result<MyObjectId, String> {
+    match id_str {
+        Some(s) if !s.is_empty() =>
+            MyObjectId::parse_string(s).map_err(|e|
+                format!("Invalid {} format: {}", field_name, e)
+            ),
+        _ => Err(format!("Missing required field: {}", field_name)),
+    }
+}
+
+/// Parse an optional ObjectId from an Option<String>, handling Option<String> cases
+pub fn parse_optional_object_id_from_option_string(
+    id_str: Option<String>
+) -> Result<Option<MyObjectId>, String> {
+    match id_str {
+        Some(s) if !s.is_empty() =>
+            MyObjectId::parse_string(&s)
+                .map(Some)
+                .map_err(|e| e.to_string()),
+        _ => Ok(None),
+    }
+}
+
+/// Convert an optional MyObjectId to an optional string
+pub fn optional_object_id_to_string(id: &Option<MyObjectId>) -> Option<String> {
+    id.as_ref().map(|oid| oid.to_string())
+}
+
+// === DateTime Conversion Utilities ===
+
+/// Convert MongoDB DateTime to Chrono DateTime<Utc>
+pub fn chrono_from_mongo_datetime(dt: &DateTime) -> Result<chrono::DateTime<Utc>, String> {
+    Utc.timestamp_millis_opt(dt.timestamp_millis())
+        .single()
+        .ok_or_else(|| format!("Invalid timestamp: {}", dt.timestamp_millis()))
+}
+
+/// Convert Chrono DateTime<Utc> to MongoDB DateTime
+pub fn mongo_from_chrono_datetime(dt: chrono::DateTime<Utc>) -> DateTime {
+    DateTime::from_millis(dt.timestamp_millis())
 }
