@@ -3,7 +3,6 @@ pub const DB_URI: &str = "DB_URI";
 pub const DB_NAME: &str = "DB_NAME";
 pub const ROCKET_PORT: &str = "ROCKET_PORT";
 pub const INTERNAL_API_KEY: &str = "INTERNAL_API_KEY";
-pub const USERS_SERVICE_BASE_URL: &str = "USERS_SERVICE_BASE_URL";
 pub const MESSAGES_SERVICE_BASE_URL: &str = "MESSAGES_SERVICE_BASE_URL";
 pub const OPENAI_API_KEY: &str = "OPENAI_API_KEY";
 pub const NEWS_API_KEY: &str = "NEWS_API_KEY";
