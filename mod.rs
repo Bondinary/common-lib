@@ -3,3 +3,4 @@ pub mod shared_models;
 pub mod utils;
 pub mod constants;
 pub mod region_utils;
+pub mod logging;
