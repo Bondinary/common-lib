@@ -42,6 +42,52 @@ impl RegionService {
         region_map.get(country_code.to_uppercase().as_str()).cloned().unwrap_or(DataRegion::US) // Default to US for unknown countries
     }
 
+    /// Validate country code format and existence
+    /// Returns true if the country code is a valid 2-letter ISO code
+    pub fn is_valid_country_code(country_code: &str) -> bool {
+        // Must be exactly 2 characters and all uppercase ASCII letters
+        if country_code.len() != 2 || !country_code.chars().all(|c| c.is_ascii_uppercase()) {
+            return false;
+        }
+
+        // Check if it's in our supported country mapping
+        let region_map = Self::create_country_region_map();
+        region_map.contains_key(country_code)
+    }
+
+    /// Validate and normalize country code
+    /// Returns normalized country code or error
+    pub fn validate_and_normalize_country_code(country_code: &str) -> Result<String, String> {
+        if country_code.is_empty() {
+            return Err("Country code cannot be empty".to_string());
+        }
+
+        let normalized = country_code.to_uppercase();
+
+        if !Self::is_valid_country_code(&normalized) {
+            return Err(
+                format!("Invalid country_code: '{}'. Must be a valid 2-letter uppercase ISO country code (e.g., US, GB, DE)", country_code)
+            );
+        }
+
+        Ok(normalized)
+    }
+
+    /// Get region string for backward compatibility with existing region-based systems
+    pub fn get_region_string_for_country(country_code: &str) -> String {
+        Self::get_region_for_country(country_code).to_string()
+    }
+
+    /// Get default region string
+    pub fn get_default_region() -> &'static str {
+        "US"
+    }
+
+    /// Check if region string is valid (for backward compatibility)
+    pub fn is_valid_region(region: &str) -> bool {
+        matches!(region, "EU" | "US" | "APAC")
+    }
+
     /// Create comprehensive mapping of country codes to data regions
     /// Based on data sovereignty laws and geographical proximity
     fn create_country_region_map() -> HashMap<&'static str, DataRegion> {
@@ -365,7 +411,7 @@ mod tests {
     }
 
     #[test]
-    fn test_data_region_string_conversion() {
+    fn test_country_code_string_conversion() {
         assert_eq!(DataRegion::EU.to_string(), "EU");
         assert_eq!(DataRegion::US.to_string(), "US");
         assert_eq!(DataRegion::APAC.to_string(), "APAC");
